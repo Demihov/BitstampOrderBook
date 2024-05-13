@@ -1,4 +1,4 @@
-﻿@page "/"
+﻿@*@page "/"
 
 <PageTitle>Index</PageTitle>
 
@@ -7,3 +7,38 @@
 Welcome to your new app.
 
 <SurveyPrompt Title="How is Blazor working for you?" />
+*@
+
+@page "/"
+@using BitstampOrderBook.Data.Models;
+@using Newtonsoft.Json;
+@inject BitstampOrderBook.Data.Services.OrderBookService OrderBookService
+
+<h3>Save Order Book Data</h3>
+
+<div>
+    <textarea @bind="jsonData" rows="10" cols="50"></textarea>
+</div>
+
+<div>
+    <button @onclick="SaveOrderBook">Save Data</button>
+</div>
+
+@code {
+    private string jsonData = "";
+
+    private async Task SaveOrderBook()
+    {
+        try
+        {
+            await OrderBookService.SaveOrderBookAsync(jsonData);
+
+            jsonData = ""; // Clear the textarea
+                           // Optionally, add a message to indicate success
+        }
+        catch (Exception ex)
+        {
+            // Handle any errors
+        }
+    }
+}
