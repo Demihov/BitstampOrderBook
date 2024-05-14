@@ -1,4 +1,6 @@
-﻿using Newtonsoft.Json;
+﻿using BitstampOrderBook.Data.Models.DTOs;
+using Microsoft.AspNetCore.SignalR;
+using Newtonsoft.Json;
 using System.Net.WebSockets;
 using System.Text;
 
@@ -10,11 +12,14 @@ namespace BitstampOrderBook.Data.Services
         private readonly ILogger<WebSocketService> _logger;
         private readonly OrderBookService _orderBookService;
 
-        public WebSocketService(OrderBookService orderBookService, ILogger<WebSocketService> logger)
+        private readonly IHubContext<OrderBookHub> _hubContext;
+
+        public WebSocketService(OrderBookService orderBookService, ILogger<WebSocketService> logger, IHubContext<OrderBookHub> hubContext)
         {
             _clientWebSocket = new ClientWebSocket();
             _logger = logger;
             _orderBookService = orderBookService;
+            _hubContext = hubContext;
         }
 
         public async Task ConnectAsync(Uri uri, CancellationToken cancellationToken)
@@ -45,6 +50,7 @@ namespace BitstampOrderBook.Data.Services
             while (!cancellationToken.IsCancellationRequested)
             {
                 var result = await _clientWebSocket.ReceiveAsync(new ArraySegment<byte>(buffer), cancellationToken);
+
                 if (result.MessageType == WebSocketMessageType.Close)
                 {
                     await _clientWebSocket.CloseAsync(WebSocketCloseStatus.NormalClosure, string.Empty, cancellationToken);
@@ -54,6 +60,8 @@ namespace BitstampOrderBook.Data.Services
                 {
                     var message = Encoding.UTF8.GetString(buffer, 0, result.Count);
                     await HandleMessageAsync(message);
+
+                    await Task.Delay(1000, cancellationToken);
                 }
             }
         }
@@ -62,8 +70,16 @@ namespace BitstampOrderBook.Data.Services
         {
             try
             {
-                await _orderBookService.SaveOrderBookAsync(message);
+                var orderBookDto = JsonConvert.DeserializeObject<OrderBookDto>(message);
+
+
+                await _orderBookService.SaveOrderBookAsync(orderBookDto);
+
                 _logger.LogInformation("Order book updated from WebSocket message.");
+
+
+                await _hubContext.Clients.All.SendAsync("ReceiveOrderBook", orderBookDto);
+
             }
             catch (Exception ex)
             {

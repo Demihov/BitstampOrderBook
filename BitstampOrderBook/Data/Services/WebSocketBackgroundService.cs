@@ -11,7 +11,7 @@
             _logger = logger;
         }
 
-        protected override async Task ExecuteAsync(CancellationToken stoppingToken)
+        protected override async Task ExecuteAsync(CancellationToken cancellationToken)
         {
             var uri = new Uri("wss://ws.bitstamp.net");
 
@@ -19,7 +19,8 @@
             {
                 using var scope = _serviceScopeFactory.CreateScope();
                 var webSocketService = scope.ServiceProvider.GetRequiredService<WebSocketService>();
-                await webSocketService.ConnectAsync(uri, stoppingToken);
+                await webSocketService.ConnectAsync(uri, cancellationToken);
+
             }
             catch (Exception ex)
             {

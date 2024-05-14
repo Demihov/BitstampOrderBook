@@ -1,5 +1,5 @@
 ﻿using BitstampOrderBook.Data.Models;
-using Newtonsoft.Json;
+using BitstampOrderBook.Data.Models.DTOs;
 
 namespace BitstampOrderBook.Data.Services
 {
@@ -14,11 +14,10 @@ namespace BitstampOrderBook.Data.Services
             _logger = logger;
         }
 
-        public async Task SaveOrderBookAsync(string jsonOrderBook)
+        public async Task SaveOrderBookAsync(OrderBookDto orderBookDto)
         {
             try
             {
-                var orderBookDto = JsonConvert.DeserializeObject<OrderBookDto>(jsonOrderBook);
                 var orderBook = new OrderBook
                 {
                     Timestamp = orderBookDto.Data.Timestamp,
@@ -57,21 +56,6 @@ namespace BitstampOrderBook.Data.Services
             {
                 _logger.LogError(ex, "Error saving order book");
             }
-        }
-
-        public class OrderBookDto
-        {
-            public OrderBookDataDto Data { get; set; }
-            public string Channel { get; set; }
-            public string Event { get; set; }
-        }
-
-        public class OrderBookDataDto
-        {
-            public double Timestamp { get; set; }
-            public double Microtimestamp { get; set; }
-            public List<List<decimal>> Bids { get; set; }
-            public List<List<decimal>> Asks { get; set; }
         }
     }
 }

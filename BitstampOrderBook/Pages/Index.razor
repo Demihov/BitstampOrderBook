@@ -1,44 +1,124 @@
-﻿@*@page "/"
-
-<PageTitle>Index</PageTitle>
-
-<h1>Hello, world!</h1>
-
-Welcome to your new app.
-
-<SurveyPrompt Title="How is Blazor working for you?" />
-*@
-
-@page "/"
+﻿@page "/"
+@using BitstampOrderBook.Data.Models.DTOs
+@using BitstampOrderBook.Data.Services
+@using Blazorise.Charts
+@using BitstampOrderBook.Data;
 @using BitstampOrderBook.Data.Models;
-@using Newtonsoft.Json;
-@inject BitstampOrderBook.Data.Services.OrderBookService OrderBookService
+@using Blazorise
+@using Blazorise.Bootstrap;
+@using Microsoft.AspNetCore.SignalR.Client
+@using Microsoft.AspNetCore.SignalR;
+@inject IHubContext<OrderBookHub> HubContext
+@inject NavigationManager NavigationManager
 
-<h3>Save Order Book Data</h3>
 
-<div>
-    <textarea @bind="jsonData" rows="10" cols="50"></textarea>
-</div>
 
-<div>
-    <button @onclick="SaveOrderBook">Save Data</button>
-</div>
+<Chart @ref="bidChart" Type="ChartType.Bar" TItem="decimal" Clicked="@OnClicked" />
+<Chart @ref="askChart" Type="ChartType.Bar" TItem="decimal" Clicked="@OnClicked" />
+
 
 @code {
-    private string jsonData = "";
+    Chart<decimal> bidChart;
+    Chart<decimal> askChart;
 
-    private async Task SaveOrderBook()
+    private List<decimal> bidPrices = new List<decimal>();
+    private List<string> bidAmount = new List<string>();
+
+    private List<decimal> askPrices = new List<decimal>();
+    private List<string> askAmount = new List<string>();
+
+
+    private HubConnection connection;
+
+    protected override async Task OnInitializedAsync()
     {
-        try
-        {
-            await OrderBookService.SaveOrderBookAsync(jsonData);
+        connection = new HubConnectionBuilder()
+            .WithUrl(NavigationManager.ToAbsoluteUri("/orderBookHub"))
+            .Build();
 
-            jsonData = ""; // Clear the textarea
-                           // Optionally, add a message to indicate success
-        }
-        catch (Exception ex)
+        connection.On<OrderBookDto>("ReceiveOrderBook", async (orderBookDto) =>
         {
-            // Handle any errors
+            await UpdateChartData(orderBookDto);
+        });
+
+        await connection.StartAsync();
+    }
+
+    private async Task UpdateChartData(OrderBookDto orderBookDto)
+    {
+        bidPrices.Clear();
+        bidAmount.Clear();
+
+        askAmount.Clear();
+        askPrices.Clear();
+
+
+        foreach (var bid in orderBookDto.Data.Bids.Take(10))
+        {
+            bidPrices.Add(bid[1]);
+            bidAmount.Add(bid[0].ToString());
         }
+
+        foreach (var ask in orderBookDto.Data.Asks.Take(10))
+        {
+            askPrices.Add(ask[1]);
+            askAmount.Add(ask[0].ToString());
+        }
+
+        await HandleRedraw();
+    }
+
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await HandleRedraw();
+        }
+    }
+
+    async Task HandleRedraw()
+    {
+        await bidChart.Clear();
+        await askChart.Clear();
+
+        await bidChart.AddLabelsDatasetsAndUpdate(bidAmount, GetBidChartDataset());
+        await askChart.AddLabelsDatasetsAndUpdate(askAmount, GetAskChartDataset());
+    }
+
+    private BarChartDataset<decimal> GetBidChartDataset()
+    {
+        return new()
+            {
+                Label = "Bids",
+                Data = bidPrices,
+                BackgroundColor = backgroundColors,
+                BorderColor = borderColors,
+                BorderWidth = 4
+            };
+    }
+
+    private BarChartDataset<decimal> GetAskChartDataset()
+    {
+        return new()
+            {
+                Label = "Asks",
+                Data = askPrices,
+                BackgroundColor = backgroundColors,
+                BorderColor = borderColors,
+                BorderWidth = 1
+            };
+    }
+
+    List<string> backgroundColors = new List<string> { ChartColor.FromRgba(255, 99, 132, 0.2f), ChartColor.FromRgba(54, 162, 235, 0.2f), ChartColor.FromRgba(255, 206, 86, 0.2f), ChartColor.FromRgba(75, 192, 192, 0.2f), ChartColor.FromRgba(153, 102, 255, 0.2f), ChartColor.FromRgba(255, 159, 64, 0.2f) };
+    List<string> borderColors = new List<string> { ChartColor.FromRgba(255, 99, 132, 1f), ChartColor.FromRgba(54, 162, 235, 1f), ChartColor.FromRgba(255, 206, 86, 1f), ChartColor.FromRgba(75, 192, 192, 1f), ChartColor.FromRgba(153, 102, 255, 1f), ChartColor.FromRgba(255, 159, 64, 1f) };
+
+
+    Task OnClicked(ChartMouseEventArgs e)
+    {
+        var model = e.Model as BarChartModel;
+
+        Console.WriteLine($"Handling event for {nameof(BarChartModel)}: x:{model.X} y:{model.Y}");
+        return Task.CompletedTask;
     }
 }

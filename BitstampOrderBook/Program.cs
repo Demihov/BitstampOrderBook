@@ -1,5 +1,8 @@
 using BitstampOrderBook.Data;
 using BitstampOrderBook.Data.Services;
+using Blazorise;
+using Blazorise.Bootstrap;
+using Blazorise.Icons.FontAwesome;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -7,6 +10,15 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 builder.Services.AddRazorPages();
 builder.Services.AddServerSideBlazor();
+
+builder.Services
+    .AddBlazorise(options =>
+    {
+        options.Immediate = true;
+    })
+    .AddBootstrapProviders()
+    .AddFontAwesomeIcons();
+
 
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
@@ -19,6 +31,8 @@ builder.Services.AddScoped<OrderBookService>();
 builder.Services.AddScoped<WebSocketService>();
 
 builder.Services.AddHostedService<WebSocketBackgroundService>();
+
+builder.Services.AddSignalR();
 
 builder.Services.AddLogging(logging =>
 {
@@ -40,6 +54,8 @@ app.UseHttpsRedirection();
 app.UseStaticFiles();
 
 app.UseRouting();
+
+app.MapHub<OrderBookHub>("/orderBookHub");
 
 app.MapBlazorHub();
 app.MapFallbackToPage("/_Host");
