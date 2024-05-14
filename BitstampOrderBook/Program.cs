@@ -14,7 +14,16 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 
 
 builder.Services.AddSingleton<WeatherForecastService>();
-builder.Services.AddTransient<OrderBookService>();
+
+builder.Services.AddScoped<OrderBookService>();
+builder.Services.AddScoped<WebSocketService>();
+
+builder.Services.AddHostedService<WebSocketBackgroundService>();
+
+builder.Services.AddLogging(logging =>
+{
+    logging.AddConsole();
+});
 
 var app = builder.Build();
 

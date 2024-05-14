@@ -6,10 +6,12 @@ namespace BitstampOrderBook.Data.Services
     public class OrderBookService
     {
         private readonly ApplicationDbContext _context;
+        private readonly ILogger<OrderBookService> _logger;
 
-        public OrderBookService(ApplicationDbContext context)
+        public OrderBookService(ApplicationDbContext context, ILogger<OrderBookService> logger)
         {
             _context = context;
+            _logger = logger;
         }
 
         public async Task SaveOrderBookAsync(string jsonOrderBook)
@@ -51,20 +53,20 @@ namespace BitstampOrderBook.Data.Services
 
                 await _context.SaveChangesAsync();
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                await Console.Out.WriteLineAsync();
+                _logger.LogError(ex, "Error saving order book");
             }
         }
 
         public class OrderBookDto
         {
-            public OrderBookData Data { get; set; }
+            public OrderBookDataDto Data { get; set; }
             public string Channel { get; set; }
             public string Event { get; set; }
         }
 
-        public class OrderBookData
+        public class OrderBookDataDto
         {
             public double Timestamp { get; set; }
             public double Microtimestamp { get; set; }
