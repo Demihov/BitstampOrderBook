@@ -59,7 +59,7 @@
 
         connection.On<OrderBookDto>("ReceiveOrderBook", async (orderBookDto) =>
         {
-            if (isUpdating)
+            if (orderBookDto is not null && isUpdating)
             {
                 await UpdateChartData(orderBookDto);
             }

@@ -1,0 +1,52 @@
+﻿@page "/buybtc"
+@using BitstampOrderBook.Data.Services
+@using BitstampOrderBook.Data;
+@using Microsoft.AspNetCore.SignalR.Client
+@using BitstampOrderBook.Data.Models.DTOs
+@using Microsoft.AspNetCore.SignalR;
+@using Blazorise
+@using Blazorise.Bootstrap;
+@inject IHubContext<OrderBookHub> HubContext
+@inject NavigationManager NavigationManager
+@inject OrderBookService orderBookService
+
+<h1>Buy BTC</h1>
+
+<div class="form-group">
+    <Label for="btcAmount">Amount of BTC to buy:</Label>
+    <InputNumber @bind-Value="@btcAmount" Class="form-control" id="btcAmount" Step="0.0001" oninput="CalculatePrice" />
+</div>
+
+<Label for="btcPrice">Price of BTC: @btcPrice</Label>
+<div>
+    <Button Color="Color.Primary" @onclick="CalculatePrice">Buy BTC</Button>
+</div>
+
+
+@code {
+    private decimal btcAmount;
+    private decimal btcPrice;
+    private HubConnection connection;
+
+    private async Task CalculatePrice()
+    {
+        if (connection is not null)
+        {
+            await connection.SendAsync("UpdateBTCPrice", btcAmount);
+        }
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        connection = new HubConnectionBuilder()
+            .WithUrl(NavigationManager.ToAbsoluteUri("/orderBookHub"))
+            .Build();
+
+        connection.On<decimal>("ReceiveBTCPrice", price =>
+        {
+            StateHasChanged();
+        });
+
+        await connection.StartAsync();
+    }
+}

@@ -17,6 +17,7 @@ namespace BitstampOrderBook.Data.Services
 
         public async Task SaveOrderBookAsync(OrderBookDto orderBookDto)
         {
+            if(orderBookDto == null) return;
             try
             {
                 var orderBook = new OrderBook
@@ -94,6 +95,27 @@ namespace BitstampOrderBook.Data.Services
             };
 
             return orderBookDto;
+        }
+
+        public async Task<decimal> GetBTCPriceByAmountAsync(decimal amount)
+        {
+            var lastOrderBook = await _context.OrderBooks
+                .OrderByDescending(ob => ob.MicroTimestamp)
+                .Include(ob => ob.Orders)
+                .FirstOrDefaultAsync();
+
+            var bids = lastOrderBook.Orders
+               .Where(o => o.OrderType == OrderType.Bid)
+               .OrderBy(o => o.Price)
+               .Select(o => new List<decimal> { o.Price, o.Amount })
+               .ToList();
+
+            if (lastOrderBook == null || !lastOrderBook.Orders.Any())
+            {
+                return 0;
+            }
+
+            return lastOrderBook.Orders[0].Price;
         }
     }
 }
