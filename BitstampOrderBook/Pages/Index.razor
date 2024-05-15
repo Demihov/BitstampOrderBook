@@ -10,11 +10,27 @@
 @using Microsoft.AspNetCore.SignalR;
 @inject IHubContext<OrderBookHub> HubContext
 @inject NavigationManager NavigationManager
+@inject OrderBookService orderBookService;
 
 
 
-<Chart @ref="bidChart" Type="ChartType.Bar" TItem="decimal" Clicked="@OnClicked" />
-<Chart @ref="askChart" Type="ChartType.Bar" TItem="decimal" Clicked="@OnClicked" />
+<div class="charts-container">
+    <div class="chart-wrapper">
+        <Chart @ref="bidChart" Type="ChartType.Bar" TItem="decimal" Clicked="@OnClicked" />
+    </div>
+    <div class="chart-wrapper">
+        <Chart @ref="askChart" Type="ChartType.Bar" TItem="decimal" Clicked="@OnClicked" />
+    </div>
+</div>
+
+<div>
+    <Button Color="Color.Primary" @onclick="StopUpdates">@buttonText</Button>
+</div>
+
+<div>
+    <input @bind="timestamp" placeholder="Enter timestamp" />
+    <button @onclick="LoadDataByTimestamp">Load Data</button>
+</div>
 
 
 @code {
@@ -30,6 +46,11 @@
 
     private HubConnection connection;
 
+    private bool isUpdating = true;
+    private string buttonText = "Stop";
+
+    private double timestamp;
+
     protected override async Task OnInitializedAsync()
     {
         connection = new HubConnectionBuilder()
@@ -38,7 +59,10 @@
 
         connection.On<OrderBookDto>("ReceiveOrderBook", async (orderBookDto) =>
         {
-            await UpdateChartData(orderBookDto);
+            if (isUpdating)
+            {
+                await UpdateChartData(orderBookDto);
+            }
         });
 
         await connection.StartAsync();
@@ -113,6 +137,12 @@
     List<string> backgroundColors = new List<string> { ChartColor.FromRgba(255, 99, 132, 0.2f), ChartColor.FromRgba(54, 162, 235, 0.2f), ChartColor.FromRgba(255, 206, 86, 0.2f), ChartColor.FromRgba(75, 192, 192, 0.2f), ChartColor.FromRgba(153, 102, 255, 0.2f), ChartColor.FromRgba(255, 159, 64, 0.2f) };
     List<string> borderColors = new List<string> { ChartColor.FromRgba(255, 99, 132, 1f), ChartColor.FromRgba(54, 162, 235, 1f), ChartColor.FromRgba(255, 206, 86, 1f), ChartColor.FromRgba(75, 192, 192, 1f), ChartColor.FromRgba(153, 102, 255, 1f), ChartColor.FromRgba(255, 159, 64, 1f) };
 
+    private async Task LoadDataByTimestamp()
+    {
+        var orderBookDto = await orderBookService.GetOrderBookByTimestampAsync(timestamp);
+        await UpdateChartData(orderBookDto);
+        isUpdating = false;
+    }
 
     Task OnClicked(ChartMouseEventArgs e)
     {
@@ -120,5 +150,11 @@
 
         Console.WriteLine($"Handling event for {nameof(BarChartModel)}: x:{model.X} y:{model.Y}");
         return Task.CompletedTask;
+    }
+
+    private void StopUpdates()
+    {
+        isUpdating = !isUpdating;
+        buttonText = isUpdating ? "Stop" : "Start";
     }
 }

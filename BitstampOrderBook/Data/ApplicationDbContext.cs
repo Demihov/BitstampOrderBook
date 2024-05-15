@@ -22,20 +22,8 @@ namespace BitstampOrderBook.Data
             modelBuilder.Entity<Order>().HasKey(o => o.Id);
 
             modelBuilder.Entity<OrderBook>()
-                .HasMany(o => o.Bids)
-                .WithOne()
-                .HasForeignKey(o => o.OrderBookId)
-                .OnDelete(DeleteBehavior.Cascade);
-
-            modelBuilder.Entity<OrderBook>()
-                .HasMany(o => o.Asks)
-                .WithOne()
-                .HasForeignKey(o => o.OrderBookId)
-                .OnDelete(DeleteBehavior.Cascade);
-
-            modelBuilder.Entity<Order>()
-                .HasOne(o => o.OrderBook)
-                .WithMany(ob => ob.Bids)
+                .HasMany(ob => ob.Orders)
+                .WithOne(o => o.OrderBook)
                 .HasForeignKey(o => o.OrderBookId)
                 .OnDelete(DeleteBehavior.Cascade);
         }
