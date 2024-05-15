@@ -79,6 +79,7 @@ namespace BitstampOrderBook.Data.Services
 
 
                 await _hubContext.Clients.All.SendAsync("ReceiveOrderBook", orderBookDto);
+                await _hubContext.Clients.All.SendAsync("PriceUpdated");
 
             }
             catch (Exception ex)

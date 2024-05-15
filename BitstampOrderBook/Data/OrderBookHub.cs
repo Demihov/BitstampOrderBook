@@ -12,10 +12,10 @@ namespace BitstampOrderBook.Data
             _orderBookService = orderBookService;
         }
 
-        public async Task UpdateBTCPrice(decimal amount)
+        public async Task GetBTCPriceByAmount(decimal amount)
         {
             var btcPrice = await _orderBookService.GetBTCPriceByAmountAsync(amount);
-            await Clients.All.SendAsync("ReceiveBTCPrice", btcPrice);
+            await Clients.Caller.SendAsync("ReceiveBTCPrice", btcPrice);
         }
     }
 }
