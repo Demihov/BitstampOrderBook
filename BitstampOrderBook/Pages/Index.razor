@@ -16,20 +16,23 @@
 
 <div class="charts-container">
     <div class="chart-wrapper">
-        <Chart @ref="bidChart" Type="ChartType.Bar" TItem="decimal" Clicked="@OnClicked" />
+        <Chart @ref="bidChart" Type="ChartType.Bar" TItem="decimal" />
     </div>
     <div class="chart-wrapper">
-        <Chart @ref="askChart" Type="ChartType.Bar" TItem="decimal" Clicked="@OnClicked" />
+        <Chart @ref="askChart" Type="ChartType.Bar" TItem="decimal" />
     </div>
 </div>
 
-<div>
-    <Button Color="Color.Primary" @onclick="StopUpdates">@buttonText</Button>
-</div>
-
-<div>
-    <input @bind="timestamp" placeholder="Enter timestamp" />
-    <button @onclick="LoadDataByTimestamp">Load Data</button>
+<div class="d-flex flex-row mt-4">
+    <div>
+        <Button Color="Color.Primary" @onclick="StopUpdates">@buttonText</Button>
+    </div>
+    <div class="ml-4">
+        <NumericEdit @bind-Value="@timestamp" placeholder="Enter timestamp" />
+    </div>
+    <div class="ml-2">
+        <Button  Color="Color.Primary" @onclick="LoadDataByTimestamp">Load Data</Button>
+    </div>
 </div>
 
 
@@ -37,11 +40,11 @@
     Chart<decimal> bidChart;
     Chart<decimal> askChart;
 
-    private List<decimal> bidPrices = new List<decimal>();
-    private List<string> bidAmount = new List<string>();
+    private List<decimal> bidAmount = new List<decimal>();
+    private List<string> bidPrices = new List<string>();
 
-    private List<decimal> askPrices = new List<decimal>();
-    private List<string> askAmount = new List<string>();
+    private List<decimal> askAmount = new List<decimal>();
+    private List<string> askPrices = new List<string>();
 
 
     private HubConnection connection;
@@ -50,6 +53,20 @@
     private string buttonText = "Stop";
 
     private double timestamp;
+
+    private static double maxY = 1;
+    private ChartOptions chartOptions = new ChartOptions
+        {
+            Scales = new ChartScales
+            {
+                Y = new ChartAxis
+                {
+                    Display = false,
+                    Max = maxY
+                }
+            }
+        };
+
 
     protected override async Task OnInitializedAsync()
     {
@@ -70,28 +87,13 @@
 
     private async Task UpdateChartData(OrderBookDto orderBookDto)
     {
-        bidPrices.Clear();
-        bidAmount.Clear();
+        UpdateAmountAndPriceOnCharts(orderBookDto);
+        UpdateMaxY(orderBookDto);
 
-        askAmount.Clear();
-        askPrices.Clear();
-
-
-        foreach (var bid in orderBookDto.Data.Bids.Take(10))
-        {
-            bidPrices.Add(bid[1]);
-            bidAmount.Add(bid[0].ToString());
-        }
-
-        foreach (var ask in orderBookDto.Data.Asks.Take(10))
-        {
-            askPrices.Add(ask[1]);
-            askAmount.Add(ask[0].ToString());
-        }
+        timestamp = orderBookDto.Data.Microtimestamp;
 
         await HandleRedraw();
     }
-
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
@@ -106,50 +108,74 @@
         await bidChart.Clear();
         await askChart.Clear();
 
-        await bidChart.AddLabelsDatasetsAndUpdate(bidAmount, GetBidChartDataset());
-        await askChart.AddLabelsDatasetsAndUpdate(askAmount, GetAskChartDataset());
+        await bidChart.AddLabelsDatasetsAndUpdate(bidPrices, GetBidChartDataset());
+        await bidChart.SetOptions(chartOptions);
+
+        await askChart.AddLabelsDatasetsAndUpdate(askPrices, GetAskChartDataset());
+        await askChart.SetOptions(chartOptions);
     }
 
-    private BarChartDataset<decimal> GetBidChartDataset()
+    private ChartDataset<decimal> GetBidChartDataset()
     {
         return new()
             {
                 Label = "Bids",
-                Data = bidPrices,
-                BackgroundColor = backgroundColors,
-                BorderColor = borderColors,
-                BorderWidth = 4
+                Data = bidAmount,
+                BackgroundColor = new List<string> { ChartColor.FromRgba(94, 214, 19, 0.8f) },
+                BorderWidth = 0
             };
     }
 
-    private BarChartDataset<decimal> GetAskChartDataset()
+    private ChartDataset<decimal> GetAskChartDataset()
     {
         return new()
             {
                 Label = "Asks",
-                Data = askPrices,
-                BackgroundColor = backgroundColors,
-                BorderColor = borderColors,
-                BorderWidth = 1
+                Data = askAmount,
+                BackgroundColor = new List<string> { ChartColor.FromRgba(205, 40, 15, 0.8f) },
+                BorderWidth = 0
             };
     }
-
-    List<string> backgroundColors = new List<string> { ChartColor.FromRgba(255, 99, 132, 0.2f), ChartColor.FromRgba(54, 162, 235, 0.2f), ChartColor.FromRgba(255, 206, 86, 0.2f), ChartColor.FromRgba(75, 192, 192, 0.2f), ChartColor.FromRgba(153, 102, 255, 0.2f), ChartColor.FromRgba(255, 159, 64, 0.2f) };
-    List<string> borderColors = new List<string> { ChartColor.FromRgba(255, 99, 132, 1f), ChartColor.FromRgba(54, 162, 235, 1f), ChartColor.FromRgba(255, 206, 86, 1f), ChartColor.FromRgba(75, 192, 192, 1f), ChartColor.FromRgba(153, 102, 255, 1f), ChartColor.FromRgba(255, 159, 64, 1f) };
 
     private async Task LoadDataByTimestamp()
     {
         var orderBookDto = await orderBookService.GetOrderBookByTimestampAsync(timestamp);
         await UpdateChartData(orderBookDto);
+
         isUpdating = false;
+        buttonText = "Start";
     }
 
-    Task OnClicked(ChartMouseEventArgs e)
+    private void UpdateAmountAndPriceOnCharts(OrderBookDto orderBookDto)
     {
-        var model = e.Model as BarChartModel;
+        bidAmount.Clear();
+        bidPrices.Clear();
 
-        Console.WriteLine($"Handling event for {nameof(BarChartModel)}: x:{model.X} y:{model.Y}");
-        return Task.CompletedTask;
+        askPrices.Clear();
+        askAmount.Clear();
+
+
+        foreach (var bid in orderBookDto.Data.Bids.Take(10))
+        {
+            bidAmount.Add(bid[1]);
+            bidPrices.Add(bid[0].ToString());
+        }
+
+        foreach (var ask in orderBookDto.Data.Asks.Take(10))
+        {
+            askAmount.Add(ask[1]);
+            askPrices.Add(ask[0].ToString());
+        }
+    }
+
+    private void UpdateMaxY(OrderBookDto orderBookDto)
+    {
+        decimal maxBid = orderBookDto.Data.Bids.Take(10).Max(bid => bid[1]);
+        decimal maxAsk = orderBookDto.Data.Asks.Take(10).Max(ask => ask[1]);
+
+
+        maxY = (double)Math.Max(maxBid, maxAsk);
+        chartOptions.Scales.Y.Max = maxY;
     }
 
     private void StopUpdates()
