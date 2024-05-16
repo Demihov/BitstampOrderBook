@@ -35,32 +35,27 @@ namespace BitstampOrderBook.Data.Services
 
                 if (orderBookDto.Data.Bids != null)
                 {
-                    foreach (var bid in orderBookDto.Data.Bids)
+                    var bids = orderBookDto.Data.Bids.Select(bid => new Order
                     {
-                        var order = new Order
-                        {
-                            OrderBookId = orderBook.Id,
-                            Price = bid[0],
-                            Amount = bid[1],
-                            OrderType = OrderType.Bid
-                        };
-                        _context.Orders.Add(order);
-                    }
+                        OrderBookId = orderBook.Id,
+                        Price = bid[0],
+                        Amount = bid[1],
+                        OrderType = OrderType.Bid
+                    });
+
+                    _context.Orders.AddRange(bids);
                 }
 
                 if (orderBookDto.Data.Asks != null)
                 {
-                    foreach (var ask in orderBookDto.Data.Asks)
+                    var asks = orderBookDto.Data.Asks.Select(ask => new Order
                     {
-                        var order = new Order
-                        {
-                            OrderBookId = orderBook.Id,
-                            Price = ask[0],
-                            Amount = ask[1],
-                            OrderType = OrderType.Ask
-                        };
-                        _context.Orders.Add(order);
-                    }
+                        OrderBookId = orderBook.Id,
+                        Price = ask[0],
+                        Amount = ask[1],
+                        OrderType = OrderType.Ask
+                    });
+                    _context.Orders.AddRange(asks);
                 }
 
                 await _context.SaveChangesAsync();
