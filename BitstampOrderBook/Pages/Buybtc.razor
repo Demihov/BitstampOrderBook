@@ -14,7 +14,7 @@
 
 <div class="form-group">
     <Label for="btcAmount">Amount of BTC to buy:</Label>
-    <NumericEdit @bind-Value="@btcAmount" />
+    <InputNumber @bind-Value="@btcAmount" Class="form-control" id="btcAmount" Step="0.0001" />
 </div>
 
 <Label for="btcPrice">Price of BTC: @btcPrice</Label>
@@ -25,7 +25,7 @@
 
 @code {
     private decimal btcAmount;
-    private decimal btcPrice;
+    private string btcPrice;
 
     private HubConnection connection;
 
@@ -45,7 +45,7 @@
 
         connection.On<decimal>("ReceiveBTCPrice", price =>
         {
-            btcPrice = price;
+            btcPrice = String.Format("{0:#,#.00}", price);
             this.InvokeAsync(() => this.StateHasChanged());
         });
 
