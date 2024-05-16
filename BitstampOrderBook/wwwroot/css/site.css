@@ -70,12 +70,14 @@ a, .btn-link {
 .charts-container {
 	display: flex;
 	flex-direction: row;
-	justify-content: space-between;
+	justify-content: center;
 }
 
 .chart-wrapper {
 	flex: 1;
 	margin: 10px;
 	min-width: 300px;
+	max-width: 700px;
+	margin: 0 auto;
 	height: 500px;
 }
