@@ -24,9 +24,6 @@ var connectionString = builder.Configuration.GetConnectionString("DefaultConnect
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(connectionString));
 
-
-builder.Services.AddSingleton<WeatherForecastService>();
-
 builder.Services.AddScoped<OrderBookService>();
 builder.Services.AddScoped<WebSocketService>();
 
