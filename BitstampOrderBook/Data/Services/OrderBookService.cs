@@ -17,7 +17,11 @@ namespace BitstampOrderBook.Data.Services
 
         public async Task SaveOrderBookAsync(OrderBookDto orderBookDto)
         {
-            if (orderBookDto == null) return;
+            if (orderBookDto == null)
+            {
+                _logger.LogError("OrderBookDto is null.");
+                return;
+            }
             try
             {
                 var orderBook = new OrderBook
@@ -29,28 +33,34 @@ namespace BitstampOrderBook.Data.Services
                 _context.OrderBooks.Add(orderBook);
                 await _context.SaveChangesAsync();
 
-                foreach (var bid in orderBookDto.Data.Bids)
+                if (orderBookDto.Data.Bids != null)
                 {
-                    var order = new Order
+                    foreach (var bid in orderBookDto.Data.Bids)
                     {
-                        OrderBookId = orderBook.Id,
-                        Price = bid[0],
-                        Amount = bid[1],
-                        OrderType = OrderType.Bid
-                    };
-                    _context.Orders.Add(order);
+                        var order = new Order
+                        {
+                            OrderBookId = orderBook.Id,
+                            Price = bid[0],
+                            Amount = bid[1],
+                            OrderType = OrderType.Bid
+                        };
+                        _context.Orders.Add(order);
+                    }
                 }
 
-                foreach (var ask in orderBookDto.Data.Asks)
+                if (orderBookDto.Data.Asks != null)
                 {
-                    var order = new Order
+                    foreach (var ask in orderBookDto.Data.Asks)
                     {
-                        OrderBookId = orderBook.Id,
-                        Price = ask[0],
-                        Amount = ask[1],
-                        OrderType = OrderType.Ask
-                    };
-                    _context.Orders.Add(order);
+                        var order = new Order
+                        {
+                            OrderBookId = orderBook.Id,
+                            Price = ask[0],
+                            Amount = ask[1],
+                            OrderType = OrderType.Ask
+                        };
+                        _context.Orders.Add(order);
+                    }
                 }
 
                 await _context.SaveChangesAsync();
@@ -63,6 +73,12 @@ namespace BitstampOrderBook.Data.Services
 
         public async Task<OrderBookDto> GetOrderBookByTimestampAsync(double timestamp)
         {
+            if (timestamp <= 0)
+            {
+                _logger.LogError("Invalid timestamp value.");
+                throw new ArgumentException("Invalid timestamp value.", nameof(timestamp));
+            }
+
             var orderBook = await _context.OrderBooks
                 .Where(ob => ob.MicroTimestamp == timestamp)
                 .Include(ob => ob.Orders)
@@ -99,10 +115,21 @@ namespace BitstampOrderBook.Data.Services
 
         public async Task<decimal> GetBTCPriceByAmountAsync(decimal amount)
         {
+            if (amount <= 0)
+            {
+                _logger.LogError("Invalid amount value.");
+                throw new ArgumentException("Invalid amount value.", nameof(amount));
+            }
+
             var lastOrderBook = await _context.OrderBooks
                 .OrderByDescending(ob => ob.MicroTimestamp)
                 .Include(ob => ob.Orders)
                 .FirstOrDefaultAsync();
+
+            if (lastOrderBook == null || lastOrderBook.Orders == null || !lastOrderBook.Orders.Any())
+            {
+                return 0;
+            }
 
             var bids = lastOrderBook.Orders
                .Where(o => o.OrderType == OrderType.Bid)
