@@ -15,6 +15,8 @@ namespace BitstampOrderBook.Data.Services.WebSocketServices
 
         private readonly IHubContext<OrderBookHub> _hubContext;
 
+        private readonly string channelToSubcribe = "order_book_btceur";
+
         public WebSocketService(OrderBookService orderBookService, ILogger<WebSocketService> logger, IHubContext<OrderBookHub> hubContext)
         {
             _clientWebSocket = new ClientWebSocket();
@@ -38,7 +40,7 @@ namespace BitstampOrderBook.Data.Services.WebSocketServices
                 @event = "bts:subscribe",
                 data = new
                 {
-                    channel = "order_book_btceur"
+                    channel = channelToSubcribe
                 }
             };
             var message = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(subscribeMessage));
