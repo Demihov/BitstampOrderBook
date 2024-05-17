@@ -156,16 +156,22 @@
         askAmount.Clear();
 
 
-        foreach (var bid in orderBookDto.Data.Bids.Take(10))
+        if (orderBookDto.Data.Bids is not null)
         {
-            bidAmount.Add(bid[1]);
-            bidPrices.Add(bid[0].ToString());
+            foreach (var bid in orderBookDto.Data.Bids.Take(10))
+            {
+                bidAmount.Add(bid[1]);
+                bidPrices.Add(bid[0].ToString());
+            }
         }
 
-        foreach (var ask in orderBookDto.Data.Asks.Take(10))
+        if (orderBookDto.Data.Asks is not null)
         {
-            askAmount.Add(ask[1]);
-            askPrices.Add(ask[0].ToString());
+            foreach (var ask in orderBookDto.Data.Asks.Take(10))
+            {
+                askAmount.Add(ask[1]);
+                askPrices.Add(ask[0].ToString());
+            }
         }
     }
 
