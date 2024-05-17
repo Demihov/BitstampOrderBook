@@ -1,7 +1,6 @@
-﻿using BitstampOrderBook.Data.Services;
-using Microsoft.AspNetCore.SignalR;
+﻿using Microsoft.AspNetCore.SignalR;
 
-namespace BitstampOrderBook.Data
+namespace BitstampOrderBook.Data.Services.Hubs
 {
     public class OrderBookHub : Hub
     {

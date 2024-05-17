@@ -1,10 +1,11 @@
 ﻿using BitstampOrderBook.Data.DTOs;
+using BitstampOrderBook.Data.Services.Hubs;
 using Microsoft.AspNetCore.SignalR;
 using Newtonsoft.Json;
 using System.Net.WebSockets;
 using System.Text;
 
-namespace BitstampOrderBook.Data.Services
+namespace BitstampOrderBook.Data.Services.WebSocketServices
 {
     public class WebSocketService
     {
@@ -71,7 +72,6 @@ namespace BitstampOrderBook.Data.Services
             try
             {
                 var orderBookDto = JsonConvert.DeserializeObject<OrderBookDto>(message);
-
 
                 await _orderBookService.SaveOrderBookAsync(orderBookDto);
 

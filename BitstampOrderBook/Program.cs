@@ -1,5 +1,7 @@
 using BitstampOrderBook.Data;
 using BitstampOrderBook.Data.Services;
+using BitstampOrderBook.Data.Services.Hubs;
+using BitstampOrderBook.Data.Services.WebSocketServices;
 using Blazorise;
 using Blazorise.Bootstrap;
 using Blazorise.Icons.FontAwesome;
@@ -26,7 +28,6 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 
 builder.Services.AddScoped<OrderBookService>();
 builder.Services.AddScoped<WebSocketService>();
-
 builder.Services.AddHostedService<WebSocketBackgroundService>();
 
 builder.Services.AddSignalR();

@@ -1,6 +1,7 @@
 ﻿@page "/"
 @using BitstampOrderBook.Data.DTOs
 @using BitstampOrderBook.Data.Services
+@using BitstampOrderBook.Data.Services.Hubs;
 @using Blazorise.Charts
 @using BitstampOrderBook.Data
 @using BitstampOrderBook.Data.Models;
@@ -31,7 +32,7 @@
         <NumericEdit @bind-Value="@timestamp" placeholder="Enter timestamp" />
     </div>
     <div class="ml-2">
-        <Button  Color="Color.Primary" @onclick="LoadDataByTimestamp">Load Data</Button>
+        <Button Color="Color.Primary" @onclick="LoadDataByTimestamp">Load Data</Button>
     </div>
 </div>
 

@@ -1,4 +1,4 @@
-﻿namespace BitstampOrderBook.Data.Services
+﻿namespace BitstampOrderBook.Data.Services.WebSocketServices
 {
     public class WebSocketBackgroundService : BackgroundService
     {
