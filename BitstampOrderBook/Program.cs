@@ -1,11 +1,8 @@
-using BitstampOrderBook.Data;
-using BitstampOrderBook.Data.Services;
+using BitstampOrderBook;
 using BitstampOrderBook.Data.Services.Hubs;
-using BitstampOrderBook.Data.Services.WebSocketServices;
 using Blazorise;
 using Blazorise.Bootstrap;
 using Blazorise.Icons.FontAwesome;
-using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -21,21 +18,7 @@ builder.Services
     .AddBootstrapProviders()
     .AddFontAwesomeIcons();
 
-
-var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
-builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseSqlServer(connectionString));
-
-builder.Services.AddScoped<OrderBookService>();
-builder.Services.AddScoped<WebSocketService>();
-builder.Services.AddHostedService<WebSocketBackgroundService>();
-
-builder.Services.AddSignalR();
-
-builder.Services.AddLogging(logging =>
-{
-    logging.AddConsole();
-});
+builder.Services.AddApplicationServices(builder.Configuration);
 
 var app = builder.Build();
 
