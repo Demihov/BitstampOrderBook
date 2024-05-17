@@ -29,7 +29,7 @@
         <Button Color="Color.Primary" @onclick="StopUpdates">@buttonText</Button>
     </div>
     <div class="ml-4">
-        <NumericEdit @bind-Value="@timestamp" placeholder="Enter timestamp" />
+        <TextEdit @bind-Value="@timestamp" placeholder="Enter timestamp" />
     </div>
     <div class="ml-2">
         <Button Color="Color.Primary" @onclick="LoadDataByTimestamp">Load Data</Button>
@@ -142,6 +142,7 @@
     private async Task LoadDataByTimestamp()
     {
         var orderBookDto = await orderBookService.GetOrderBookByTimestampAsync(timestamp);
+        if (orderBookDto is null) { return; }
         await UpdateChartData(orderBookDto);
 
         isUpdating = false;
