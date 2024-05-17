@@ -1,8 +1,7 @@
 # BitstampOrderBook
 
 BitstampOrderBook is a service that provides the ability to save and retrieve the order book of the Bitstamp cryptocurrency exchange accounting, as well as calculate the value of cryptocurrency according to a given amount.
-
-![зображення](https://github.com/Demihov/BitstampOrderBook/assets/32543463/932c68da-15b8-43fb-8c37-0d5c110ebb8d)
+![зображення](https://github.com/Demihov/BitstampOrderBook/assets/32543463/a6ce7e25-0be2-40c7-b778-2e0fab296c37)
 
 ## Contents
 
