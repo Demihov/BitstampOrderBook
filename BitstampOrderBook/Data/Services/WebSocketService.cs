@@ -1,4 +1,4 @@
-﻿using BitstampOrderBook.Data.Models.DTOs;
+﻿using BitstampOrderBook.Data.DTOs;
 using Microsoft.AspNetCore.SignalR;
 using Newtonsoft.Json;
 using System.Net.WebSockets;

@@ -1,4 +1,4 @@
-﻿namespace BitstampOrderBook.Data.Models.DTOs
+﻿namespace BitstampOrderBook.Data.DTOs
 {
     public class OrderBookDto
     {

@@ -1,6 +1,6 @@
 ﻿using BitstampOrderBook.Data;
+using BitstampOrderBook.Data.DTOs;
 using BitstampOrderBook.Data.Models;
-using BitstampOrderBook.Data.Models.DTOs;
 using BitstampOrderBook.Data.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;

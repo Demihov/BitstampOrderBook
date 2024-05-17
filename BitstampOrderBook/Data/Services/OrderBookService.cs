@@ -1,5 +1,5 @@
-﻿using BitstampOrderBook.Data.Models;
-using BitstampOrderBook.Data.Models.DTOs;
+﻿using BitstampOrderBook.Data.DTOs;
+using BitstampOrderBook.Data.Models;
 using Microsoft.EntityFrameworkCore;
 
 namespace BitstampOrderBook.Data.Services
